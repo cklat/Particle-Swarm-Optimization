@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[52]:
-
-
 import graph
 import particle
 import helper
@@ -22,16 +19,18 @@ class PSO:
         self.alpha = alpha 
         self.beta = beta
     
-        #generate random paths
-        random_paths = graph.getRandomPaths(self.num_particles)
+        #generate random routes
+        random_routes = graph.getRandomRoutes(self.num_particles)
         
         #initiliaze particles
-        self.particles = [particle.Particle(path, self.graph.getCostOfPath(path)) for path in random_paths]
+        self.particles = [particle.Particle(i, route, self.graph.getCostOfRoute(route)) for i, route
+                          in enumerate(random_routes)]
         
         #calculate initial global best solution
-        best_paths = sorted(self.particles, key=lambda x: x.current_cost)
-        self.gbest_route = best_paths[0].current_route
-        self.gbest_cost = best_paths[0].current_cost
+        best_routes = sorted(self.particles, key=lambda x: x.current_cost)
+        self.gbest_route = best_routes[0].current_route
+        self.gbest_cost = best_routes[0].current_cost
+        self.gbest_particle = best_routes[0]
     
     def iterate(self):
         
@@ -49,11 +48,13 @@ class PSO:
                 particle.velocity = total_swap_seq
                 
                 particle.current_route = self.calculate_position(particle.current_route, particle.velocity)
-                particle.current_cost = graph.getCostOfPath(particle.current_route)
+                particle.current_cost = graph.getCostOfRoute(particle.current_route)
                 
+                print(particle.current_route)
                 if particle.current_cost < self.gbest_cost:
                     self.gbest_cost = particle.current_cost
                     self.gbest_route = particle.current_route
+                    self.gbest_particle = particle
                     
                     particle.pbest_cost = particle.current_cost
                     particle.pbest_route = particle.current_route
@@ -62,13 +63,14 @@ class PSO:
                     particle.pbest_cost = particle.current_cost
                     particle.pbest_route = particle.current_route
                     
-            print("gbest cost: {0} | route: {1}".format(self.gbest_cost, self.gbest_route))
+            print("gbest cost: {0} | route: {1} | by Particle: {2}"
+                  .format(self.gbest_cost, self.gbest_route, self.gbest_particle.id))
 
     def generate_init_velocities(self):
-        rndm_paths = self.graph.getRandomPaths(self.num_particles)
+        rndm_routes = self.graph.getRandomRoutes(self.num_particles)
         
         for i, p in enumerate(self.particles):
-            p.velocity = self.calculate_swap_seq(p.current_route, rndm_paths[i], mode="init")
+            p.velocity = self.calculate_swap_seq(p.current_route, rndm_routes[i], mode="init")
         
     def calculate_position(self, xid, vid):
         
@@ -90,7 +92,7 @@ class PSO:
         if mode=='gbest':
             cutoff_val = self.beta
             
-        for i in range(len(a)):
+        for i in range(len(a)-1):
             if a[i] != b[i]:
                 swap_ind = np.where(b==a[i])[0][0]
                 b[i], b[swap_ind] = b[swap_ind], b[i]
@@ -98,30 +100,17 @@ class PSO:
                     swap_seq.append((i, swap_ind))
             
         return swap_seq
-        
-    
-    
-
-
-# In[53]:
-
+       
 
 doc = "../Data/ulysses16.xml"
 
 vertices, edges = helper.read_tsp(doc)
 graph = graph.Graph(vertices, edges)
 
-pso = PSO(graph, 30, 30, 0.5, 0.5)
-
-
-# In[54]:
+pso = PSO(graph, 30, 50, 0.5, 0.5)
 
 
 pso.iterate()
-
-
-# In[ ]:
-
 
 
 

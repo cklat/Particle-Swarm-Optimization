@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 class Particle:
     
-    def __init__(self, init_route, init_cost):
+    def __init__(self, ID, init_route, init_cost):
+        
+        self.id = ID
         
         self.current_route = init_route
         self.pbest_route = init_route
@@ -16,11 +15,6 @@ class Particle:
         
         self.velocity = [] #swap operators 
         
-        
-
-
-# In[ ]:
-
 
 
 
